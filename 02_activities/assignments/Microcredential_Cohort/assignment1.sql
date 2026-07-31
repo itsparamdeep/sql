@@ -1,5 +1,9 @@
  /* ASSIGNMENT 1 */
+Logical Model 
+-- Logical Data Model: ./images/LOGIC DATA MODELING - Assignment 1.png
+
 --Please write responses between the QUERY # and END QUERY blocks
+
 /* SECTION 2 */
 
 
@@ -7,8 +11,7 @@
 /* 1. Write a query that returns everything in the customer table. */
 --QUERY 1
 
-
-
+Select * from customer;
 
 --END QUERY
 
@@ -17,8 +20,7 @@
 sorted by customer_last_name, then customer_first_ name. */
 --QUERY 2
 
-
-
+Select * from customer order by customer_last_name, customer_first_name limit 10;
 
 --END QUERY
 
@@ -26,13 +28,12 @@ sorted by customer_last_name, then customer_first_ name. */
 --WHERE
 /* 1. Write a query that returns all customer purchases of product IDs 4 and 9. 
 Limit to 25 rows of output. */
+
 --QUERY 3
 
-
-
+Select * from customer_purchases where product_id = 4 or product_id = 9 limit 25;
 
 --END QUERY
-
 
 
 /*2. Write a query that returns all customer purchases and a new calculated column 'price' (quantity * cost_to_customer_per_qty), 
@@ -43,8 +44,7 @@ Limit to 25 rows of output.
 */
 --QUERY 4
 
-
-
+Select *, (quantity * cost_per_quantity) as price from customer_purchases where customer_id >= 8 and customer_id <= 10 limit 25;
 
 --END QUERY
 
@@ -57,7 +57,9 @@ if the product_qty_type is “unit,” and otherwise displays the word “bulk.�
 --QUERY 5
 
 
-
+Select product_id, product_name,
+case when product_qty_type = 'unit' then 'unit' else 'bulk' end as prod_qty_type_condensed
+from product;
 
 --END QUERY
 
@@ -67,20 +69,26 @@ add a column to the previous query called pepper_flag that outputs a 1 if the pr
 contains the word “pepper” (regardless of capitalization), and otherwise outputs 0. */
 --QUERY 6
 
-
+Select product_id, product_name,
+case when product_qty_type = 'unit' then 'unit' else 'bulk' end as	 prod_qty_type_condensed,
+case when lower(product_name) like '%pepper%' then 1 else 0 end as	 pepper_flag
+from product;																																							
 
 
 --END QUERY
 
 
 --JOIN
+
 /* 1. Write a query that INNER JOINs the vendor table to the vendor_booth_assignments table on the 
 vendor_id field they both have in common, and sorts the result by market_date, then vendor_name.
 Limit to 24 rows of output. */
 --QUERY 7
 
-
-
+Select * from vendor v 
+inner join vendor_booth_assignments vba on v.vendor_id = vba.vendor_id
+order by vba.market_date, v.vendor_name
+limit 24;
 
 --END QUERY
 
@@ -93,8 +101,10 @@ Limit to 24 rows of output. */
 at the farmer’s market by counting the vendor booth assignments per vendor_id. */
 --QUERY 8
 
-
-
+Select v.vendor_id, v.vendor_name, count(vba.vendor_id) as booth_count
+from vendor v		
+inner join vendor_booth_assignments vba on v.vendor_id = vba.vendor_id
+group by v.vendor_id, v.vendor_name;
 
 --END QUERY
 
@@ -106,8 +116,12 @@ of customers for them to give stickers to, sorted by last name, then first name.
 HINT: This query requires you to join two tables, use an aggregate function, and use the HAVING keyword. */
 --QUERY 9
 
-
-
+Select c.customer_id, c.customer_first_name, c.customer_last_name, sum(cp.quantity * cp.cost_per_quantity) as total_spent
+from customer c	
+inner join customer_purchases cp on c.customer_id = cp.customer_id
+group by c.customer_id, c.customer_first_name, c.customer_last_name
+having sum(cp.quantity * cp.cost_per_quantity) > 2000
+order by c.customer_last_name, c.customer_first_name;
 
 --END QUERY
 
@@ -125,8 +139,9 @@ VALUES(col1,col2,col3,col4,col5)
 */
 --QUERY 10
 
-
-
+CREATE TEMP TABLE new_vendor AS SELECT * FROM vendor;
+INSERT INTO temp.new_vendor (vendor_id, vendor_name, vendor_type, vendor_owner_first_name, vendor_owner_last_name)
+VALUES (10, 'Thomass Superfood Store', 'Fresh Focused', 'Thomas', 'Rosenthal');
 
 --END QUERY
 
@@ -139,8 +154,10 @@ and year are!
 Limit to 25 rows of output. */
 --QUERY 11
 
-
-
+Drop table if exists temp.customer_purchases_date;
+Select customer_id, strftime('%m', market_date) as month, strftime('%Y', market_date) as year
+from customer_purchases
+limit 25;
 
 --END QUERY
 
@@ -153,7 +170,10 @@ but remember, STRFTIME returns a STRING for your WHERE statement...
 AND be sure you remove the LIMIT from the previous query before aggregating!! */
 --QUERY 12
 
-
-
+Select c.customer_id, sum(cp.quantity * cp.cost_per_quantity) as total_spent
+from customer c
+inner join customer_purchases cp on c.customer_id = cp.customer_id
+where strftime('%m', cp.market_date) = '04' and strftime('%Y', cp.market_date) = '2022'
+group by c.customer_id;	
 
 --END QUERY
